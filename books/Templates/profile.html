@@ -1,0 +1,21 @@
+<!-- users/templates/users/profile.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="profile-container">
+    <h1>User Profile</h1>
+
+    <div class="profile-info">
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+
+        {% if profile.avatar %}
+            <img src="{{ profile.avatar.url }}" alt="Profile Picture" class="avatar">
+        {% endif %}
+
+        <!-- Add more profile fields as needed -->
+    </div>
+
+    <a href="{% url 'profile_edit' %}" class="btn btn-primary">Edit Profile</a>
+</div>
+{% endblock %}
