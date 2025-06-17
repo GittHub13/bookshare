@@ -24,7 +24,7 @@ class BookSerializer(serializers.ModelSerializer):
             'author',
             'genre',
             'status',
-            'image',
+            'cover_image',
             'pickup_location',
             'interested_users',
             'selected_user',

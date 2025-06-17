@@ -14,7 +14,6 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
@@ -26,8 +25,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
 
-
-schema_view: 'drf_yasg.views.SchemeView' = get_schema_view(
+schema_view = get_schema_view(
     openapi.Info(
         title="BookShare API",
         default_version='v1',
@@ -40,39 +38,21 @@ schema_view: 'drf_yasg.views.SchemeView' = get_schema_view(
 )
 
 urlpatterns = [
-    # Core URLs
     path('', RedirectView.as_view(url='swagger/', permanent=True)),
 
-    static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
-
-    # Admin
     path('admin/', admin.site.urls),
 
-    # API Documentation
-    path('swagger/',
-         schema_view.with_ui('swagger', cache_timeout=0),  # type: ignore[attr-defined]
-         name='schema-swagger-ui'),
-    path('swagger.json',
-         schema_view.without_ui(cache_timeout=0),  # type: ignore[attr-defined]
-         name='schema-json'),
-    path('redoc/',
-         schema_view.with_ui('redoc', cache_timeout=0),  # type: ignore[attr-defined]
-         name='schema-redoc'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
-    # API v1 Endpoints
     path('api/v1/', include([
-        # Authentication
         path('auth/', include('authentication.urls')),
-
-        # JWT Endpoints
         path('auth/token', TokenObtainPairView.as_view(), name='token-obtain'),
         path('auth/token/refresh', TokenRefreshView.as_view(), name='token-refresh'),
-
-        # Resources
         path('users/', include('users.urls')),
         path('books/', include('books.urls')),
     ])),
 
-    # Health check
     path('health', lambda r: HttpResponse('OK'), name='health-check'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

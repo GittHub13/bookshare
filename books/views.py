@@ -5,7 +5,6 @@ from books.serializers import BookSerializer, AuthorSerializer
 from .models import Author
 from users.models import Profile
 from django.contrib.auth.decorators import login_required
-from .models import Profile
 from .serializers import GenreSerializer
 from django.http import JsonResponse
 
