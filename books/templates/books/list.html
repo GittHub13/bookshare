@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Books{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Browse Books</h1>
+    {% if user.is_authenticated %}
+        <a href="{% url 'book-create' %}" class="btn btn-success">Add New Book</a>
+    {% endif %}
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <input type="text" id="search-input" class="form-control" placeholder="Search books...">
+    </div>
+    <div class="col-md-3">
+        <select id="genre-filter" class="form-select">
+            <option value="">All Genres</option>
+            <!-- Genres will be loaded via JavaScript -->
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select id="author-filter" class="form-select">
+            <option value="">All Authors</option>
+            <!-- Authors will be loaded via JavaScript -->
+        </select>
+    </div>
+</div>
+
+<div class="row" id="books-container">
+    <!-- Books will be loaded via JavaScript -->
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load filters
+    fetch('/api/v1/genres/')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('genre-filter');
+            data.results.forEach(genre => {
+                select.innerHTML += `<option value="${genre.id}">${genre.name}</option>`;
+            });
+        });
+    
+    fetch('/api/v1/authors/')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('author-filter');
+            data.results.forEach(author => {
+                select.innerHTML += `<option value="${author.id}">${author.name}</option>`;
+            });
+        });
+    
+    // Load books
+    function loadBooks(url = '/api/v1/books/') {
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('books-container');
+                container.innerHTML = '';
+                
+                data.results.forEach(book => {
+                    container.innerHTML += `
+                        <div class="col-md-4 mb-4">
+                            <div class="card book-card h-100">
+                                <img src="${book.cover_image || 'https://via.placeholder.com/200x300'}" class="card-img-top" alt="${book.title}">
+                                <div class="card-body">
+                                    <h5 class="card-title">${book.title}</h5>
+                                    <p class="card-text">${book.author.name}</p>
+                                    <p class="card-text"><small class="text-muted">${book.condition}</small></p>
+                                    <a href="/books/${book.id}/" class="btn btn-primary">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+    }
+    
+    loadBooks();
+    
+    // Implement search and filters
+    document.getElementById('search-input').addEventListener('input', function(e) {
+        const searchTerm = e.target.value;
+        loadBooks(`/api/v1/books/?search=${searchTerm}`);
+    });
+    
+    document.getElementById('genre-filter').addEventListener('change', function(e) {
+        const genreId = e.target.value;
+        loadBooks(genreId ? `/api/v1/books/?genre=${genreId}` : '/api/v1/books/');
+    });
+    
+    document.getElementById('author-filter').addEventListener('change', function(e) {
+        const authorId = e.target.value;
+        loadBooks(authorId ? `/api/v1/books/?author=${authorId}` : '/api/v1/books/');
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

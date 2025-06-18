@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile</title>
+</head>
+<body>
+    <h1>{{ user.username }}'s Profile</h1>
+
+    <p>Email: {{ user.email }}</p>
+    <p>Bio: {{ profile.bio }}</p>
+
+    <a href="{% url 'home' %}">← Back to Home</a>
+</body>
+</html>

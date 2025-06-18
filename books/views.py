@@ -1,57 +1,55 @@
-from django.shortcuts import render, get_object_or_404
-from rest_framework import viewsets, permissions
-from books.models import Book, Genre
-from books.serializers import BookSerializer, AuthorSerializer
-from .models import Author
-from users.models import Profile
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .serializers import GenreSerializer
-from django.http import JsonResponse
+from .models import Book
+from .forms import BookForm
 
-
-@login_required
-def profile(request):
-    # Get the user's profile
-    user_profile = get_object_or_404(Profile, user=request.user)
-
-    context = {
-        'profile': user_profile,
-        'user': request.user,
-    }
-    return render(request, 'users/profile.html', context)
-
-def home_page(request):
-    return render(request, 'home.html')
+def home(request):
+    """Home page view showing featured books"""
+    featured_books = Book.objects.filter(status='available')[:4]
+    return render(request, 'home.html', {'featured_books': featured_books})
 
 def book_list(request):
-    # აქ დაამატეთ ლოგიკა წიგნების სიისთვის
-    return render(request, 'books/list.html')
+    """List all available books"""
+    books = Book.objects.filter(status='available')
+    return render(request, 'books/list.html', {'books': books})
 
-def welcome():
-    return JsonResponse({
-        'message': 'Welcome to Book Share API',
-        'endpoints': {
-            'swagger': '/swagger/',
-            'redoc': '/redoc/',
-            'api_root': '/api/',
-            'admin': '/admin/',
-            'auth': '/api/auth/'
-        }
-    })
+def book_detail(request, pk):
+    """Show details of a specific book"""
+    book = get_object_or_404(Book, pk=pk)
+    return render(request, 'books/detail.html', {'book': book})
 
+@login_required
+def book_create(request):
+    """Create a new book listing"""
+    if request.method == 'POST':
+        form = BookForm(request.POST, request.FILES)
+        if form.is_valid():
+            book = form.save(commit=False)
+            book.owner = request.user
+            book.save()
+            return redirect('book-detail', pk=book.pk)
+    else:
+        form = BookForm()
+    return render(request, 'books/form.html', {'form': form})
 
-class GenreViewSet(viewsets.ModelViewSet):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
+@login_required
+def book_update(request, pk):
+    """Update an existing book listing"""
+    book = get_object_or_404(Book, pk=pk, owner=request.user)
+    if request.method == 'POST':
+        form = BookForm(request.POST, request.FILES, instance=book)
+        if form.is_valid():
+            form.save()
+            return redirect('book-detail', pk=book.pk)
+    else:
+        form = BookForm(instance=book)
+    return render(request, 'books/form.html', {'form': form})
 
-
-class AuthorViewSet(viewsets.ModelViewSet):
-    queryset = Author.objects.all()  # This allows DRF to auto-detect basename
-    serializer_class = AuthorSerializer
-
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-
+@login_required
+def book_delete(request, pk):
+    """Delete a book listing"""
+    book = get_object_or_404(Book, pk=pk, owner=request.user)
+    if request.method == 'POST':
+        book.delete()
+        return redirect('book-list')
+    return render(request, 'books/confirm_delete.html', {'book': book})

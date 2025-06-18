@@ -52,10 +52,9 @@ INSTALLED_APPS = [
     'books',
     'users',
     'authentication',
-    'health_check',
-    'health_check.db',
-    'health_check.cache',
-    'health_check.storage',
+    'accounts.apps.AccountsConfig',
+
+
 ]
 
 SWAGGER_SETTINGS = {
@@ -88,7 +87,7 @@ ROOT_URLCONF = 'bookshare.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -108,8 +107,8 @@ WSGI_APPLICATION = 'bookshare.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'booksharedb'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
         'USER': os.getenv('DB_USER', 'bookshareuser'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'booksharepass'),
         'HOST': os.getenv('DB_HOST', 'localhost'),
@@ -154,12 +153,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-BASE_DIR / "static",
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 
